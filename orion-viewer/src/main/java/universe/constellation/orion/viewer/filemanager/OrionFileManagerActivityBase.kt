@@ -9,7 +9,9 @@ import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
 import android.view.SubMenu
+import android.view.View
 import android.widget.ListView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.GravityCompat
@@ -79,6 +81,7 @@ abstract class OrionFileManagerActivityBase @JvmOverloads constructor(
         drawerLayoutListener = ActionBarDrawerToggle(this, drawerLayout, toolbar)
         drawerLayoutListener.drawerArrowDrawable.color = MaterialColors.getColor(drawerLayout, R.attr.appIconTint)
         drawerLayout.addDrawerListener(drawerLayoutListener)
+        closeDrawerOnBack()
         drawerLayoutListener.isDrawerIndicatorEnabled = true
         navView = findViewById(R.id.nav_view)
         navView.setNavigationItemSelectedListener(this)
@@ -186,13 +189,27 @@ abstract class OrionFileManagerActivityBase @JvmOverloads constructor(
         checkAndRequestStorageAccessPermissionOrReadOne(Permissions.ASK_READ_PERMISSION_FOR_FILE_MANAGER)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(findViewById(R.id.nav_view))) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
+    /**
+     * Back closes the drawer, but only while it's open: the rest of the time the callback stays
+     * disabled so the system runs its own back gesture, predictive animation included.
+     */
+    private fun closeDrawerOnBack() {
+        val callback = object : OnBackPressedCallback(drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            override fun handleOnBackPressed() {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
         }
+        onBackPressedDispatcher.addCallback(this, callback)
+
+        drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerOpened(drawerView: View) {
+                callback.isEnabled = true
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                callback.isEnabled = false
+            }
+        })
     }
 
     open val systemSelectMimeTypes: Array<String>

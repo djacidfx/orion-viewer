@@ -47,7 +47,17 @@
         android:allowBackup="true"
         android:icon="@drawable/orion"
         android:label="@string/app_name"
+        android:enableOnBackInvokedCallback="true"
         android:requestLegacyExternalStorage="true">
+
+        <!--
+          Reading orientation is a user setting, so keep honouring it on large screens.
+          The opt out works up to target sdk 36 only: since 37 the system always ignores
+          orientation, resizability and aspect ratio restrictions on displays >= 600dp.
+        -->
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
 
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
         <meta-data android:name="google_analytics_default_allow_ad_personalization_signals" android:value="false" />
