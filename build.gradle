@@ -27,8 +27,8 @@ allprojects {
 project.ext {
     isAndroid40Build = project.findProperty("orion.build.android40")?.toBoolean() ?: false
     orionMinSdk = !isAndroid40Build ? 16 : 14
-    orionTargetSdk = 35
-    orionCompileSdk = 35
+    orionTargetSdk = 36
+    orionCompileSdk = 36
     orionBuildToolsVersion = "35.0.0"
     enableAnalytics = !isAndroid40Build && file("orion-viewer/google-services.json").exists()
     orionNdkVersion = !isAndroid40Build ? "23.2.8568313" : "17.2.4988734"

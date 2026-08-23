@@ -31,6 +31,7 @@ import universe.constellation.orion.viewer.android.isAtLeastKitkat
 import universe.constellation.orion.viewer.formats.FileFormats
 import universe.constellation.orion.viewer.getVectorDrawable
 import universe.constellation.orion.viewer.log
+import universe.constellation.orion.viewer.padWithSystemBars
 import java.io.File
 import java.io.FilenameFilter
 
@@ -85,6 +86,12 @@ abstract class OrionFileManagerActivityBase @JvmOverloads constructor(
         drawerLayoutListener.isDrawerIndicatorEnabled = true
         navView = findViewById(R.id.nav_view)
         navView.setNavigationItemSelectedListener(this)
+
+        //DrawerLayout distributes the insets on its own, so android:fitsSystemWindows of the theme
+        //doesn't reach this screen. NavigationView routes the top inset into its header layout, and
+        //there is no header here, so it would be dropped and the first menu item would end up under
+        //the status bar.
+        navView.padWithSystemBars()
 
         val menu = navView.menu
         val locations = menu.findItem(R.id.nav_locations)
