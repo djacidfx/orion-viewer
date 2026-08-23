@@ -1,6 +1,8 @@
 package universe.constellation.orion.viewer.test.bookmarks
 
+import android.os.Build
 import androidx.test.core.app.ActivityScenario
+import androidx.test.filters.SdkSuppress
 import com.google.android.material.navigation.NavigationView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -15,6 +17,7 @@ import universe.constellation.orion.viewer.test.framework.BaseTest
 import universe.constellation.orion.viewer.test.framework.appContext
 import java.io.File
 
+@SdkSuppress(minSdkVersion = Build.VERSION_CODES.KITKAT)
 class BookmarkImportTest : BaseTest() {
 
     private val accessor by lazy {

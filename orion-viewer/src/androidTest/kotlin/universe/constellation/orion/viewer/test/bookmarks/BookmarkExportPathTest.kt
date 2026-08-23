@@ -1,5 +1,7 @@
 package universe.constellation.orion.viewer.test.bookmarks
 
+import android.os.Build
+import androidx.test.filters.SdkSuppress
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -16,6 +18,7 @@ import java.io.File
  * A book folder is not always a good place for an export: a book opened by content uri is read
  * from a temporary copy in the app cache, and such export would be invisible for a user.
  */
+@SdkSuppress(minSdkVersion = Build.VERSION_CODES.KITKAT)
 class BookmarkExportPathTest : BaseTest() {
 
     @Test

@@ -1,9 +1,11 @@
 package universe.constellation.orion.viewer.test.espresso
 
+import android.os.Build
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.filters.SdkSuppress
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -21,7 +23,10 @@ import java.io.File
 /**
  * Export puts bookmarks next to the book, so the book should be opened as a real one:
  * a temp test book has no path at all.
+ *
+ * Menu navigation goes through uiautomator, which doesn't load below API 18.
  */
+@SdkSuppress(minSdkVersion = Build.VERSION_CODES.KITKAT)
 @RunWith(Parameterized::class)
 class BookmarkExportTest(bookDescription: BookFile) : BaseViewerActivityTest(
     bookDescription,
