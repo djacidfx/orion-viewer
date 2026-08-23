@@ -36,6 +36,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.google.android.material.color.MaterialColors
@@ -235,7 +236,7 @@ abstract class OrionBaseActivity(val viewerType: Int = Device.DEFAULT_ACTIVITY) 
 
 fun Activity.getVectorDrawable(id: Int, color: Int = 0): Drawable {
     val drawable = VectorDrawableCompat.create(resources, id, this.theme)
-        ?: ColorDrawable(resources.getColor(R.color.orion_orange))
+        ?: ColorDrawable(ContextCompat.getColor(this, R.color.orion_orange))
 //    if (color != 0) {
 //        DrawableCompat.setTint(drawable, resources.getColor(R.color.orion_orange))
 //        DrawableCompat.setTintMode(drawable, PorterDuff.Mode.SRC_IN);

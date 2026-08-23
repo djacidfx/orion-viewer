@@ -1,13 +1,16 @@
+
 package universe.constellation.orion.viewer.view
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import universe.constellation.orion.viewer.OrionBookListener
 import universe.constellation.orion.viewer.OrionViewerActivity
 import universe.constellation.orion.viewer.R
+import androidx.core.graphics.drawable.toDrawable
 
 interface Scene  {
     fun setColorMatrix(colorMatrix: FloatArray?) {
@@ -26,8 +29,8 @@ class FullScene(private val scene: ViewGroup, val drawView: OrionDrawScene, stat
 
     init {
         val drawable = VectorDrawableCompat.create(context.resources, R.drawable.loading, context.theme)
-            ?: ColorDrawable(context.resources.getColor(R.color.orion_orange))
-        DrawableCompat.setTint(drawable, context.resources.getColor(R.color.orion_orange))
+            ?: ContextCompat.getColor(context, R.color.orion_orange).toDrawable()
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.orion_orange))
         drawView.init(colorStuff, statusBarHelper, drawable)
     }
 
