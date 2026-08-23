@@ -101,13 +101,9 @@ class ScrollTest(bookDescription: BookFile, newUI: Boolean, configuration: Confi
         openZoom()
         onView(withId(R.id.zoom_picker_seeker)).perform(setSeekBarProgress { (it / downScale).toInt() })
         applyZoom()
-        Thread.sleep(500)
         onView(withId(R.id.view)).perform(swipeUp())
-        Thread.sleep(500)
         onView(withId(R.id.view)).perform(swipeUp())
-        Thread.sleep(500)
         onView(withId(R.id.view)).perform(swipeUp())
-        Thread.sleep(500)
         onView(withId(R.id.view)).perform(swipeDown())
     }
 }

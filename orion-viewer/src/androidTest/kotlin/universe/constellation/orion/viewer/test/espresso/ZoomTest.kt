@@ -17,15 +17,12 @@ class ZoomTest(bookDescription: BookFile, config: Configuration): BaseViewerActi
         openZoom()
         onView(withId(R.id.zoom_picker_seeker)).perform(setSeekBarProgress { it / 3 })
         applyZoom()
-        Thread.sleep(1000)
         onView(withId(R.id.view)).perform(swipeUp())
 
-        Thread.sleep(1000)
         openZoom()
         onView(withId(R.id.zoom_picker_seeker)).perform(setSeekBarProgress { it * 2 })
         applyZoom()
 
-        Thread.sleep(1000)
         onView(withId(R.id.view)).perform(swipeUp())
     }
 }

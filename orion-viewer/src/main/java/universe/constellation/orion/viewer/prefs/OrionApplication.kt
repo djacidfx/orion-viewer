@@ -57,6 +57,7 @@ import universe.constellation.orion.viewer.device.MagicBookBoeyeDevice
 import universe.constellation.orion.viewer.device.OnyxDevice
 import universe.constellation.orion.viewer.device.OnyxUtil
 import universe.constellation.orion.viewer.device.calcFZCacheSize
+import universe.constellation.orion.viewer.isTraceEnabled
 import universe.constellation.orion.viewer.log
 import universe.constellation.orion.viewer.logger
 import universe.constellation.orion.viewer.prefs.GlobalOptions.Companion.DEFAULT_LANGUAGE
@@ -226,6 +227,7 @@ class OrionApplication : Application(), DefaultLifecycleObserver {
     }
 
     fun startOrStopDebugLogger(start: Boolean) {
+        isTraceEnabled = start
         if (start) {
             try {
                 val logFolder = debugLogFolder()

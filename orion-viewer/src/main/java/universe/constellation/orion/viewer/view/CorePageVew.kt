@@ -1,6 +1,8 @@
 package universe.constellation.orion.viewer.view
 
 import android.graphics.RectF
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -11,6 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import universe.constellation.orion.viewer.Controller
@@ -52,6 +55,22 @@ open class CorePageView(
 
     protected val dataPageScope = CoroutineScope(controller.context + dataPageJobs + handler)
 
+
+    /**
+     * Marks the app busy for the whole life of the job: geometry calculation and page rendering
+     * happen in background and leave the main looper empty, so without it instrumentation tests
+     * have nothing to wait for but a sleep. In the production build the resource is a no-op.
+     */
+    protected fun CoroutineScope.launchTracked(
+        context: CoroutineContext = EmptyCoroutineContext,
+        body: suspend CoroutineScope.() -> Unit
+    ): Job {
+        val idlingRes = controller.activity.orionApplication.idlingRes
+        idlingRes.busy()
+        return launch(context, block = body).apply {
+            invokeOnCompletion { idlingRes.free() }
+        }
+    }
 
     fun readPageDataFromUI(): Deferred<Unit> {
         if (pageData == null) {
