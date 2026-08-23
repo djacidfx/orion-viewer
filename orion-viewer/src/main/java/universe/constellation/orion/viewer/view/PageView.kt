@@ -18,12 +18,12 @@ import universe.constellation.orion.viewer.document.Document
 import universe.constellation.orion.viewer.geometry.RectF
 import universe.constellation.orion.viewer.layout.LayoutPosition
 import universe.constellation.orion.viewer.layout.SimpleLayoutStrategy
-import universe.constellation.orion.viewer.log
-import universe.constellation.orion.viewer.timing
+import universe.constellation.orion.viewer.logTrace
 import kotlin.coroutines.coroutineContext
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.min
+import universe.constellation.orion.viewer.traceTiming
 
 
 private const val STORE_SHRINK_PERCENT = 75
@@ -80,7 +80,7 @@ class PageView(
     }
 
     fun destroy() {
-        log("Page view $pageNum: destroying")
+        logTrace { "Page view $pageNum: destroying" }
         state = PageState.DESTROYED
         cancelChildJobs(allJobs = true)
         bitmap?.disableAll(controller.bitmapCache)
@@ -100,14 +100,14 @@ class PageView(
 
     fun reinit(marker: String = "reinit", operation: Operation = Operation.DEFAULT) {
         if (state == PageState.SIZE_AND_BITMAP_CREATED) return
-        log("Page $pageNum $marker $state $document" )
+        logTrace { "Page $pageNum $marker $state $document" }
         cancelChildJobs()
         if (::pageInfoJob.isInitialized) {
             pageInfoJob.cancel()
         }
 
         pageInfo = null
-        pageInfoJob = dataPageScope.launch(Dispatchers.Main) {
+        pageInfoJob = dataPageScope.launchTracked(Dispatchers.Main) {
             val info = getPageInfo(controller.layoutStrategy as SimpleLayoutStrategy)
             if (isActive) {
                 controller.layoutStrategy.reset(layoutInfo, info)
@@ -122,7 +122,7 @@ class PageView(
         wholePageRect.set(0, 0, layoutInfo.x.pageDimension, layoutInfo.y.pageDimension)
         bitmap = bitmap?.resize(wholePageRect.width(), wholePageRect.height(), controller.bitmapCache)
             ?: pageLayoutManager.bitmapManager.createDefaultBitmap(wholePageRect.width(), wholePageRect.height(), pageNum)
-        log("PageView.initBitmap $pageNum ${controller.document} $wholePageRect")
+        logTrace { "PageView.initBitmap $pageNum ${controller.document} $wholePageRect" }
         pageInfo = info
         setInitialLayoutAndXPosition(operation, state)
         state = PageState.SIZE_AND_BITMAP_CREATED
@@ -135,10 +135,10 @@ class PageView(
             canvas.translate(layoutData.position.x, layoutData.position.y)
             if (state == PageState.SIZE_AND_BITMAP_CREATED && bitmap != null) {
                 //draw bitmap
-                log("Draw page $pageNum in state $state ${bitmap?.width} ${bitmap?.height} ")
+                logTrace { "Draw page $pageNum in state $state ${bitmap?.width} ${bitmap?.height} " }
                 draw(canvas, bitmap!!, scene.defaultPaint!!, scene)
             } else {
-                log("Draw border $pageNum in state $state")
+                logTrace { "Draw border $pageNum in state $state" }
                 drawBlankLoadingPage(canvas, scene)
                 drawBorder(canvas, scene)
             }
@@ -171,10 +171,10 @@ class PageView(
 
     internal fun renderVisible(): Job? {
         if (!isOnScreen) {
-            log("Non visible $pageNum");
+            logTrace { "Non visible $pageNum" }
             lastMainRenderingJob = null
         } else {
-            lastMainRenderingJob = renderingScopeOnUI.launch {
+            lastMainRenderingJob = renderingScopeOnUI.launchTracked {
                 layoutData.visibleOnScreenPart(pageLayoutManager.sceneRect)?.let {
                     render(it, true, "Render visible")
                 }
@@ -186,7 +186,7 @@ class PageView(
     fun renderInvisible(rect: Rect, tag: String, joinJob: Job?) {
         //TODO yield
         if (Rect.intersects(rect, wholePageRect)) {
-            renderingScopeOnUI.launch {
+            renderingScopeOnUI.launchTracked {
                 joinJob?.join()
                 render(rect, false, "Render invisible $tag")
             }
@@ -207,14 +207,14 @@ class PageView(
         val bitmap = bitmap!!
 
         withContext(renderingScope.coroutineContext) {
-            timing("$tag $pageNum page in rendering engine: $bound") {
+            traceTiming({ "$tag $pageNum page in rendering engine: $bound" }) {
                 bitmap.render(bound, layoutInfo, page)
             }
         }
 
         if (coroutineContext.isActive) {
             if (fromUI) {
-                log("PageView ($tag) invalidate: $pageNum $layoutData ${scene != null}")
+                logTrace { "PageView ($tag) invalidate: $pageNum $layoutData ${scene != null}" }
                 with(pageLayoutManager) {
                     if (this@PageView.isActivePage) {
                         scene.invalidate()
@@ -222,7 +222,7 @@ class PageView(
                 }
             }
         } else {
-            log("PageView.render $pageNum $layoutData: canceled")
+            logTrace { "PageView.render $pageNum $layoutData: canceled" }
         }
     }
 

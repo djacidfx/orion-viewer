@@ -17,6 +17,7 @@ import universe.constellation.orion.viewer.errorInDebug
 import universe.constellation.orion.viewer.layout.LayoutPosition
 import universe.constellation.orion.viewer.layout.calcPageLayout
 import universe.constellation.orion.viewer.log
+import universe.constellation.orion.viewer.logTrace
 import universe.constellation.orion.viewer.selection.PageAndSelection
 import kotlin.math.abs
 import kotlin.math.max
@@ -90,7 +91,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
     fun forcePageUpdate() {
         activePages.forEach {
             it.invalidateAndUpdate()
-            log("Page force update " + it.pageNum)
+            logTrace { "Page force update " + it.pageNum }
         }
     }
 
@@ -211,7 +212,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
         //First of all: render single active page and precache data around
         if (isSinglePageMode) {
             val mainPage = activePages.firstOrNull { it.isActivePage }
-            log("Render... ${mainPage?.pageNum}")
+            logTrace { "Render... ${mainPage?.pageNum}" }
             //if (mainPage?.state != PageState.SIZE_AND_BITMAP_CREATED) return
             val mainTask = mainPage?.renderVisible()
             mainPage?.precache(mainTask)
@@ -241,12 +242,12 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
             if (head && !s.isActiveOrOnScreen && !f.isActiveOrOnScreen) {
                 toDestroy.add(f)
                 f.destroy()
-                log("updateCache: ${f.pageNum} destroyed")
+                logTrace { "updateCache: ${f.pageNum} destroyed" }
             } else {
                 head = false
             }
             if (f.state != oldState) {
-                log("updateCache: ${f.pageNum} newState=${f.state} oldState=$oldState")
+                logTrace { "updateCache: ${f.pageNum} newState=${f.state} oldState=$oldState" }
             }
         }
 
@@ -256,13 +257,13 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
             if (head && !s.isActiveOrOnScreen && !f.isActiveOrOnScreen) {
                 if (toDestroy.add(f)) {
                     f.destroy()
-                    log("updateCache: ${f.pageNum} destroyed")
+                    logTrace { "updateCache: ${f.pageNum} destroyed" }
                 }
             } else {
                 head = false
             }
             if (f.state != oldState) {
-                log("updateCache: ${f.pageNum} newState=${f.state} oldState=$oldState")
+                logTrace { "updateCache: ${f.pageNum} newState=${f.state} oldState=$oldState" }
             }
         }
         activePages.removeAll(toDestroy)
@@ -482,7 +483,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
             )
         }
     ): PageView? {
-        log("RenderPageAt page=$pageNum x=$x y=$y isTapNavigation=$isTapNavigation")
+        logTrace { "RenderPageAt page=$pageNum x=$x y=$y isTapNavigation=$isTapNavigation" }
         setSinglePageMode(isTapNavigation, pageNum)
 
         val index = activePages.binarySearch { it.pageNum.compareTo(pageNum) }
@@ -497,7 +498,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
                 activePages.size -> (activePages.lastOrNull()?.pageNum ?: -1) != pageNum - 1
                 else -> false
             }
-            log("Page $ rendering pageNum: insertIndex=$insertIndex activePages=${activePages.size} destroyThem=$destroy")
+            logTrace { "Page $ rendering pageNum: insertIndex=$insertIndex activePages=${activePages.size} destroyThem=$destroy" }
             if (destroy) {
                 destroyPages()
             }
@@ -522,7 +523,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
 
         onPageSizeCalculatedCallback?.job?.cancel()
         if (page.state == PageState.SIZE_AND_BITMAP_CREATED) {
-            log("onPageSizeCalculatedCallback: inplace")
+            logTrace { "onPageSizeCalculatedCallback: inplace" }
             onPageSizeCalculatedCallback = null
             val completed = page.pageInfo!!
             doScroll(page, completed) //TODO process errors
@@ -532,7 +533,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
                 errorInDebug("Unexpected state ${page.pageNum} + ${page.pageInfoJob.isCompleted}")
             }
             onPageSizeCalculatedCallback = Callback(pageNum, Job(controller.rootJob)) {
-                log("onPageSizeCalculatedCallback: call")
+                logTrace { "onPageSizeCalculatedCallback: call" }
                 doScroll(page, it)
             }
         }
@@ -551,7 +552,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
 
     private fun dump() {
         activePages.forEach{
-            log("Dump ${it.pageNum} ${it.state}: ${it.layoutData.globalRect(tmpRectF)}")
+            logTrace { "Dump ${it.pageNum} ${it.state}: ${it.layoutData.globalRect(tmpRectF)}" }
         }
 
         if (!BuildConfig.DEBUG) return
@@ -579,7 +580,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
         info: PageInfo,
         operation: Operation
     ) {
-        log("onSizeCalculated ${updatedView.pageNum}: ${updatedView.layoutData} old=$oldArea")
+        logTrace { "onSizeCalculated ${updatedView.pageNum}: ${updatedView.layoutData} old=$oldArea" }
         val delta = updatedView.wholePageRect.height() - oldArea.height()
 
         var found = false
@@ -614,7 +615,7 @@ class PageLayoutManager(val controller: Controller, val scene: OrionDrawScene) {
         updateCacheAndRender()
 
         if (operation != Operation.PINCH_ZOOM && updatedView.isActivePage) {
-            log("Invalidate ${updatedView.pageNum} scene in onPageSizeCalculated: $operation")
+            logTrace { "Invalidate ${updatedView.pageNum} scene in onPageSizeCalculated: $operation" }
             scene.invalidate()
         }
         dump()

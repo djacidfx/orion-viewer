@@ -7,7 +7,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import universe.constellation.orion.viewer.log
+import universe.constellation.orion.viewer.logTrace
 import universe.constellation.orion.viewer.util.MoveUtil
 
 
@@ -26,7 +26,7 @@ class PageScene : View {
 
     private fun triggerPaint() {
         if (getGlobalVisibleRect(visibleRect)) {
-            log("PageView.triggerPaint " + pageView?.pageNum + ": " + visibleRect)
+            logTrace { "PageView.triggerPaint " + pageView?.pageNum + ": " + visibleRect }
         }
         if (getLocalVisibleRect(visibleRect)) {
             pageView?.renderVisible()
@@ -77,7 +77,7 @@ class PageScene : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        log("Scene onDraw: ${pageView?.pageNum}")
+        logTrace { "Scene onDraw: ${pageView?.pageNum}" }
         if (!inited) {
             return
         }
@@ -86,7 +86,7 @@ class PageScene : View {
         val myScale = scale
 
         if (inScaling) {
-            log("in scaling")
+            logTrace { "in scaling" }
             canvas.save()
             canvas.translate(
                 -MoveUtil.calcOffset(

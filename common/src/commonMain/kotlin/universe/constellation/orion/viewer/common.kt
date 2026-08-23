@@ -46,6 +46,19 @@ inline fun <R> timing(message: String, block: () -> R): R {
     }
 }
 
+/**
+ * [timing] for the rendering hot path: neither the message nor the timings are produced
+ * while [isTraceEnabled] is off.
+ */
+@OptIn(ExperimentalContracts::class)
+inline fun <R> traceTiming(message: () -> String, block: () -> R): R {
+    contract {
+        callsInPlace(message, InvocationKind.AT_MOST_ONCE)
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    return if (isTraceEnabled) timing(message(), block) else block()
+}
+
 fun memoryInMB(memoryInBytes: Long): String {
     return "${memoryInBytes / 1024 / 1024}Mb"
 }

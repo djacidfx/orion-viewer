@@ -2,14 +2,14 @@ package universe.constellation.orion.viewer.view
 
 import android.graphics.Rect
 import kotlinx.coroutines.Job
-import universe.constellation.orion.viewer.log
+import universe.constellation.orion.viewer.logTrace
 
 fun PageView.precache(joinJob: Job?) {
-    log("Precaching $pageNum: $state")
+    logTrace { "Precaching $pageNum: $state" }
     if (this.state != PageState.SIZE_AND_BITMAP_CREATED) return
 
     val globalPageRect = this.layoutData.globalRect(Rect())
-    log("Precaching $pageNum: $globalPageRect")
+    logTrace { "Precaching $pageNum: $globalPageRect" }
 
     val sceneInfo = pageLayoutManager.sceneRect
 
@@ -32,7 +32,7 @@ fun PageView.precache(joinJob: Job?) {
 
 fun PageView.precacheNeighbours(next: Boolean) {
     val isCurrentPageInitialized = this.state != PageState.SIZE_AND_BITMAP_CREATED
-    log("Precaching Neighbours $pageNum")
+    logTrace { "Precaching Neighbours $pageNum" }
     val sceneInfo = pageLayoutManager.sceneRect
 
     val tmp = this.layoutData.globalRect(Rect())
@@ -52,7 +52,7 @@ fun PageView.precacheNeighbours(next: Boolean) {
 fun PageView.precacheSide(rectOnScreen: Rect, pageGlobal: Rect, side: String, joinJob: Job?) {
     val intersect = rectOnScreen.intersect(pageGlobal)
     if (intersect && !rectOnScreen.isEmpty) {
-        log("precache $pageNum: $side")
+        logTrace { "precache $pageNum: $side" }
         renderInvisible(layoutData.toLocalCoord(rectOnScreen), side, joinJob)
     }
 }

@@ -38,6 +38,19 @@ interface Logger {
 
 var logger = object : Logger {}
 
+/**
+ * Page layout and rendering produce hundreds of log lines per second while the book is scrolled
+ * or zoomed. Writing them costs more than the rendering itself, so the trace is muted until the
+ * debug log is switched on in the preferences.
+ */
+var isTraceEnabled = false
+
+inline fun logTrace(message: () -> String) {
+    if (isTraceEnabled) {
+        log(message())
+    }
+}
+
 fun log(m: String) = logger.log(m)
 
 fun logError(m: String) = logger.log("Error: $m")

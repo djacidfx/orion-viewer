@@ -12,8 +12,8 @@ import org.jetbrains.annotations.TestOnly
 import universe.constellation.orion.viewer.BitmapCache
 import universe.constellation.orion.viewer.document.Page
 import universe.constellation.orion.viewer.layout.LayoutPosition
-import universe.constellation.orion.viewer.log
 import kotlin.coroutines.coroutineContext
+import universe.constellation.orion.viewer.logTrace
 
 data class Key(val x: Int, val y: Int) : Comparable<Key> {
     override fun compareTo(other: Key): Int {
@@ -141,12 +141,12 @@ class FlexibleBitmap(width: Int, height: Int, val partWidth: Int, val partHeight
         get() = renderingArea.height()
 
     private fun initData(width: Int, height: Int): MutableMap<Key, PagePart> {
-        log("FB: initData $pageNum $width $height")
+        logTrace { "FB: initData $pageNum $width $height" }
         return sortedMapOf()
     }
 
     fun resize(width: Int, height: Int, bitmapCache: BitmapCache): FlexibleBitmap {
-        log("FB: resize $pageNum $width $height")
+        logTrace { "FB: resize $pageNum $width $height" }
         free(bitmapCache)
         data = initData(width, height)
         renderingArea.set(0, 0, width, height)
@@ -236,7 +236,7 @@ class FlexibleBitmap(width: Int, height: Int, val partWidth: Int, val partHeight
     }
 
     suspend fun render(renderingArea: Rect, curPos: LayoutPosition, page: Page) {
-        log("FB rendering $page $renderingArea")
+        logTrace { "FB rendering $page $renderingArea" }
         coroutineScope {
             forEach(true) {
                 if (isActive) {
@@ -292,7 +292,7 @@ private fun Int.countCell(cellSize: Int): Int {
 }
 
 private fun renderInner(bound: Rect, zoom: Double, offsetX: Int, offsetY: Int, page: Page, bitmap: Bitmap): Bitmap {
-    log("Rendering $page: $bound\n $offsetX $offsetY\nbm=${bitmap.width}x${bitmap.height}\ndim${bound.width()} ${bound.height()}")
+    logTrace { "Rendering $page: $bound\n $offsetX $offsetY\nbm=${bitmap.width}x${bitmap.height}\ndim${bound.width()} ${bound.height()}" }
     page.renderPage(
         bitmap,
         zoom,

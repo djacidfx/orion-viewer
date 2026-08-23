@@ -1,9 +1,9 @@
 package universe.constellation.orion.viewer.document
 
 import universe.constellation.orion.viewer.PageSize
-import universe.constellation.orion.viewer.log
 import universe.constellation.orion.viewer.logError
-import universe.constellation.orion.viewer.timing
+import universe.constellation.orion.viewer.logTrace
+import universe.constellation.orion.viewer.traceTiming
 import java.util.concurrent.atomic.AtomicInteger
 
 abstract class AbstractPage(override val pageNum: Int) : Page {
@@ -28,12 +28,12 @@ abstract class AbstractPage(override val pageNum: Int) : Page {
 
     override fun getPageSize(): PageSize {
         if (!::pageSize.isInitialized) {
-            timing("Page $pageNum size extraction") {
+            traceTiming({ "Page $pageNum size extraction" }) {
                 pageSize = readPageSize() ?: dimensionForCorruptedPage().also {
                     logError("Page $pageNum is corrupted")
                 }
             }
-            log("Page $pageNum size: $pageSize")
+            logTrace { "Page $pageNum size: $pageSize" }
         }
         return pageSize
     }

@@ -39,7 +39,7 @@ import universe.constellation.orion.viewer.document.PageText
 import universe.constellation.orion.viewer.document.PageTextBuilder
 import universe.constellation.orion.viewer.errorInDebug
 import universe.constellation.orion.viewer.errorInDebugOr
-import universe.constellation.orion.viewer.timing
+import universe.constellation.orion.viewer.traceTiming
 
 class PdfDocument @Throws(Exception::class) constructor(filePath: String) : AbstractDocument(filePath) {
 
@@ -58,7 +58,7 @@ class PdfDocument @Throws(Exception::class) constructor(filePath: String) : Abst
                 synchronized(core) {
                     if (page == null) {
                         try {
-                            timing("Page extraction: $pageNum") {
+                            traceTiming({ "Page extraction: $pageNum" }) {
                                 page = core.doc.loadPage(pageNum)
                             }
                         } catch (e: IllegalArgumentException) {

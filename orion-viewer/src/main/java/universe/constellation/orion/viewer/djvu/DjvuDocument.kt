@@ -11,7 +11,7 @@ import universe.constellation.orion.viewer.errorInDebug
 import universe.constellation.orion.viewer.errorInDebugOr
 import universe.constellation.orion.viewer.geometry.RectF
 import universe.constellation.orion.viewer.pdf.DocInfo
-import universe.constellation.orion.viewer.timing
+import universe.constellation.orion.viewer.traceTiming
 import java.util.Locale
 
 class DjvuDocument(filePath: String) : AbstractDocument(filePath) {
@@ -32,7 +32,7 @@ class DjvuDocument(filePath: String) : AbstractDocument(filePath) {
         override fun readPageDataForRendering() {
             if (destroyed) return errorInDebug("Page $pageNum already destroyed")
             if (pagePointer == 0L && docPointer != 0L) {
-                timing("Page extraction: $pageNum") {
+                traceTiming({ "Page extraction: $pageNum" }) {
                     pagePointer = getPageInternal(contextPointer, docPointer, pageNum)
                 }
             }
@@ -52,11 +52,11 @@ class DjvuDocument(filePath: String) : AbstractDocument(filePath) {
             readPageDataForRendering()
             if (docPointer == 0L || pagePointer == 0L) return
 
-            timing(
+            traceTiming({
                 "Page rendering: $pageNum ($pagePointer) $zoom, ${leftOffset + left}, ${
                     topOffset + top
                 }, ${leftOffset + right}, ${topOffset + bottom}"
-            ) {
+            }) {
                 drawPage(
                     contextPointer,
                     docPointer,

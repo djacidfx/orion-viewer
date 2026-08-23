@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import kotlinx.coroutines.sync.Mutex
 import java.util.concurrent.ConcurrentLinkedQueue
+import universe.constellation.orion.viewer.logTrace
 
 private const val DEFAULT_BITMAP_CACHE_SIZE = 32
 private const val CLEAN_THREASHHOLD = 5
@@ -43,7 +44,7 @@ open class BitmapCache(val size: Int = DEFAULT_BITMAP_CACHE_SIZE) {
             resultInfo = CacheInfo(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888), Mutex())
             cachedBitmaps.add(resultInfo)
         } else {
-            log("BitmapCache(${cachedBitmaps.size}): using cached bitmap ${System.identityHashCode(resultInfo.bitmap)}")
+            logTrace { "BitmapCache(${cachedBitmaps.size}): using cached bitmap ${System.identityHashCode(resultInfo.bitmap)}" }
         }
         resultInfo.bitmap.eraseColor(Color.TRANSPARENT)
         resultInfo.owned = true
