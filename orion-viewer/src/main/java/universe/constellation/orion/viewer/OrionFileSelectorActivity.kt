@@ -31,6 +31,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import universe.constellation.orion.viewer.FallbackDialogs.Companion.saveFileByUri
 import universe.constellation.orion.viewer.Permissions.checkWritePermission
+import universe.constellation.orion.viewer.android.isContentUri
 import universe.constellation.orion.viewer.filemanager.FileChooserAdapter
 import universe.constellation.orion.viewer.filemanager.OrionFileManagerActivityBase
 import java.io.File
@@ -114,8 +115,19 @@ class OrionFileSelectorActivity : OrionFileManagerActivityBase(
     }
 
     private fun returnFile(uri: Uri) {
-        val result = Intent()
-        result.putExtra(RESULT_FILE_URI, uri.toString())
+        val result = Intent().apply {
+            //the uri itself always travels in the extra, both for content and for file uris
+            putExtra(RESULT_FILE_URI, uri.toString())
+            if (uri.isContentUri) {
+                //The read grant the system picker gave to this activity dies when it finishes, so
+                //the caller needs a grant of its own. The system creates one only for the uri in
+                //the intent data - an uri inside an extra is plain text to it.
+                //File uris stay out of the data: they need no grant and would trip the StrictMode
+                //file uri exposure check.
+                data = uri
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+        }
         setResult(Activity.RESULT_OK, result)
         finish()
     }
