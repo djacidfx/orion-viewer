@@ -13,6 +13,7 @@ import universe.constellation.orion.viewer.analytics.Analytics
 import universe.constellation.orion.viewer.errorInDebugOr
 import universe.constellation.orion.viewer.log
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 
 fun getFileInfo(context: Context, uri: Uri, analytics: Analytics): FileInfo? {
@@ -73,11 +74,36 @@ fun getFileInfo(context: Context, uri: Uri, analytics: Analytics): FileInfo? {
         ).also {
             log("Returning descriptor file info: $it")
         }
+    } catch (e: FileNotFoundException) {
+        //the descriptor is only a shortcut to the path, a provider may well refuse it and still serve the data
+        return FileInfo(displayName, sizeOrZero, id, "", uri, readError = streamError(context, uri, e, analytics))
+    } catch (e: SecurityException) {
+        return FileInfo(displayName, sizeOrZero, id, "", uri, readError = streamError(context, uri, e, analytics))
     } catch (e: Throwable) {
         errorInDebugOr(e.toString()) { e.printStackTrace() }
     }
 
     return FileInfo(displayName, sizeOrZero, id, "", uri)
+}
+
+/**
+ * Checks the source the way it's going to be read: the stream is what the copy into
+ * the temporary file opens. Returns the failure if the data is unreachable that way too.
+ */
+private fun streamError(context: Context, uri: Uri, descriptorError: Exception, analytics: Analytics): Exception? {
+    log("No descriptor for $uri: $descriptorError")
+    try {
+        context.contentResolver.openInputStream(uri)?.close() ?: return descriptorError
+        return null
+    } catch (e: FileNotFoundException) {
+        //the provider has no such file (any more): a regular outcome, not a bug
+        analytics.logWarning("Unreadable source ${uri.authority}: $e")
+        return e
+    } catch (e: SecurityException) {
+        //no grant for the uri, e.g. an expired one-off grant
+        analytics.logWarning("Unreadable source ${uri.authority}: $e")
+        return e
+    }
 }
 
 

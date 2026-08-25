@@ -6,6 +6,10 @@
     <string name="fileopen_private_resource_access_info">Невозможно получить прямой доступ к файлу, пожалуйста, выберите один из вариантов ниже:</string>
     <string name="fileopen_permission_dialog">Нет прямого доступа к файлу</string>
     <string name="fileopen_permission_dialog_info">Пожалуйста, предоставте права на чтение файла напрямую или выберите опцию ниже:</string>
+    <string name="fileopen_source_unavailable">Файл недоступен</string>
+    <string name="fileopen_source_unavailable_info">Приложение, поделившееся файлом (%1$s), больше не даёт к нему доступ: %2$s. Пожалуйста, откройте или отправьте файл из того приложения ещё раз, или:</string>
+    <string name="fileopen_source_unavailable_message">Приложение, поделившееся файлом (%1$s), больше не даёт к нему доступ: %2$s. Пожалуйста, откройте или отправьте файл из того приложения ещё раз.</string>
+
     <string name="fileopen_permissions_grant_read">Предоставить права на чтение диска…</string>
     <string name="fileopen_save_to_file">Сохранить в новый файл…</string>
     <string name="fileopen_open_in_temporary_file">Открыть через временный файл</string>

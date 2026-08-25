@@ -30,6 +30,9 @@ import universe.constellation.orion.viewer.android.isContentUri
 import universe.constellation.orion.viewer.filemanager.OrionFileManagerActivity
 import universe.constellation.orion.viewer.formats.FileFormats.Companion.getFileExtension
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
 import java.util.Locale
 
 class ResourceIdAndString(val id: Int, val value: String) {
@@ -97,10 +100,34 @@ open class FallbackDialogs {
         )
     }
 
+    /**
+     * The provider behind the uri refuses to open it (the file is gone or the grant has expired),
+     * so copying it anywhere is hopeless and offering the copy would only end in a crash report.
+     */
+    fun createUnreadableSourceFallbackDialog(activity: OrionViewerActivity, intent: Intent, error: Exception): Dialog {
+        return createFallbackDialog(
+            activity,
+            null,
+            intent,
+            R.string.fileopen_source_unavailable,
+            activity.getString(R.string.fileopen_source_unavailable_info, intent.data?.authority, error.describe()),
+            null,
+            listOfNotNull(
+                R.string.fileopen_permissions_grant_read.takeIf { error is SecurityException && !hasReadStoragePermission(activity) },
+                R.string.fileopen_open_recent_files
+            ),
+            error
+        )
+    }
+
+    private fun createFallbackDialog(activity: OrionViewerActivity, fileInfo: FileInfo?, intent: Intent, title: Int, info: Int, defaultAction: Int?, list: List<Int>): Dialog {
+        return createFallbackDialog(activity, fileInfo, intent, title, activity.getString(info), defaultAction, list)
+    }
+
      //content intent
-     private fun createFallbackDialog(activity: OrionViewerActivity, fileInfo: FileInfo?, intent: Intent, title: Int, info: Int, defaultAction: Int?, list: List<Int>): Dialog {
+     private fun createFallbackDialog(activity: OrionViewerActivity, fileInfo: FileInfo?, intent: Intent, title: Int, info: String, defaultAction: Int?, list: List<Int>, exception: Exception? = null): Dialog {
          val dialogTitle = activity.getString(title)
-         activity.showErrorOnFallbackPanel(dialogTitle, intent, cause = dialogTitle)
+         activity.showErrorOnFallbackPanel(dialogTitle, intent, cause = dialogTitle.takeIf { exception == null }, exception = exception)
 
          activity.analytics.dialog(FALLBACK_DIALOG, true)
 
@@ -108,7 +135,7 @@ open class FallbackDialogs {
 
          val view = activity.layoutInflater.inflate(R.layout.intent_problem_dialog, null)
          val infoText = view.findViewById<TextView>(R.id.intent_problem_info)
-         infoText.setText(info)
+         infoText.text = info
 
          val builder = AlertDialog.Builder(activity)
 
@@ -211,13 +238,23 @@ open class FallbackDialogs {
             targetFileUri: Uri,
             handler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
                 exception.printStackTrace()
-                this@saveFileByUri.showErrorReportDialog(
-                    R.string.error_on_file_saving_title,
-                    R.string.error_on_file_saving_title,
-                    intent,
-                    "targetFile=$targetFileUri",
-                    exception
-                )
+                if (exception is SourceUnavailableException) {
+                    //nothing to report: the other app has withdrawn the file
+                    analytics.logWarning(exception.message!!)
+                    createThemedAlertBuilder()
+                        .setTitle(R.string.fileopen_source_unavailable)
+                        .setMessage(exception.message)
+                        .setPositiveButton(R.string.string_close) { dialog, _ -> dialog.dismiss() }
+                        .show()
+                } else {
+                    this@saveFileByUri.showErrorReportDialog(
+                        R.string.error_on_file_saving_title,
+                        R.string.error_on_file_saving_title,
+                        intent,
+                        "source=$originalContentUri\ntargetFile=$targetFileUri",
+                        exception
+                    )
+                }
             },
             callbackAction: () -> Unit
         ) {
@@ -230,7 +267,7 @@ open class FallbackDialogs {
                 progressBar.show()
                 try {
                     withContext(Dispatchers.IO) {
-                        (contentResolver.openInputStream(originalContentUri)?.use { input ->
+                        (openSource(originalContentUri)?.use { input ->
                             contentResolver.openOutputStream(targetFileUri)?.use { output ->
                                 input.copyTo(output)
                             } ?: error("Can't open output stream for $targetFileUri")
@@ -243,7 +280,32 @@ open class FallbackDialogs {
                 }
             }
         }
+
+        /**
+         * One-off uri grants die with the activity they were given to and providers drop files at will,
+         * so the source can turn unreadable between the dialog and the click that starts the copy.
+         */
+        private fun OrionBaseActivity.openSource(uri: Uri): InputStream? {
+            return try {
+                contentResolver.openInputStream(uri)
+            } catch (e: FileNotFoundException) {
+                throw SourceUnavailableException(this, uri, e)
+            } catch (e: SecurityException) {
+                throw SourceUnavailableException(this, uri, e)
+            }
+        }
     }
+}
+
+class SourceUnavailableException(context: Context, uri: Uri, cause: Exception) : IOException(
+    context.getString(R.string.fileopen_source_unavailable_message, uri.authority, cause.describe()),
+    cause
+)
+
+/** Provider exceptions often carry no message, so at least name the class. */
+internal fun Exception.describe(): String {
+    val message = message
+    return if (message.isNullOrBlank()) javaClass.simpleName else "${javaClass.simpleName}: $message"
 }
 
 private fun Context.tmpContentFolderForFile(fileInfo: FileInfo?): File {

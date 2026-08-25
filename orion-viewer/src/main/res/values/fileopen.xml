@@ -8,6 +8,10 @@
     <string name="fileopen_permission_dialog">Can\'t access file directly</string>
     <string name="fileopen_permission_dialog_info">Please grant read file permissions to access it directly or choose option below:</string>
 
+    <string name="fileopen_source_unavailable">File is not accessible</string>
+    <string name="fileopen_source_unavailable_info">The app that shared the file (%1$s) doesn\'t provide access to it any more: %2$s. Please share or open the file from that app again, or:</string>
+    <string name="fileopen_source_unavailable_message">The app that shared the file (%1$s) doesn\'t provide access to it any more: %2$s. Please share or open the file from that app again.</string>
+
     <string name="fileopen_permissions_grant_read">Grant storage read permission…</string>
     <string name="fileopen_save_to_file">Save to new file…</string>
     <string name="fileopen_open_in_temporary_file">Open via temporary file</string>

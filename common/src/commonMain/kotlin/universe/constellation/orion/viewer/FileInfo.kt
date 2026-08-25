@@ -8,7 +8,9 @@ data class FileInfo(
     val size: Long,
     val id: String?,
     val path: String,
-    val uri: Uri
+    val uri: Uri,
+    /** Set when the content provider refused to open the uri: the file can't be read at all. */
+    val readError: Exception? = null
 ) {
 
     val file: File by lazy { File(path) }

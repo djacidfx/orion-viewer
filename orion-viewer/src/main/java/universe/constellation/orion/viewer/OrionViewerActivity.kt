@@ -186,6 +186,14 @@ class OrionViewerActivity : OrionBaseActivity(viewerType = Device.VIEWER_ACTIVIT
                 val fileInfo = getFileInfo(this, uri, analytics)
                 val filePath = fileInfo?.path
 
+                val readError = fileInfo?.readError
+                if (readError != null) {
+                    //the provider refuses the uri: no way to read the data from it in any form
+                    FallbackDialogs().createUnreadableSourceFallbackDialog(this, intent, readError).show()
+                    destroyController()
+                    return
+                }
+
                 if (fileInfo == null || filePath.isNullOrBlank()) {
                     FallbackDialogs().createBadIntentFallbackDialog(this, null, intent).show()
                     destroyController()
@@ -838,9 +846,11 @@ class OrionViewerActivity : OrionBaseActivity(viewerType = Device.VIEWER_ACTIVIT
                             inputFileIntentData,
                             data.data!!,
                             CoroutineExceptionHandler { _, exception ->
+                                //the source may be withdrawn before the copy starts: that's not a saving failure
+                                val title = if (exception is SourceUnavailableException) R.string.fileopen_source_unavailable else R.string.error_on_file_saving_title
                                 showErrorAndErrorPanel(
-                                    R.string.error_on_file_saving_title,
-                                    R.string.error_on_file_saving_title,
+                                    title,
+                                    title,
                                     intent,
                                     exception
                                 )
