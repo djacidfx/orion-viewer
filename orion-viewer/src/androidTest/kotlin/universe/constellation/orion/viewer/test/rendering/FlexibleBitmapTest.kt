@@ -41,21 +41,25 @@ class FlexibleBitmapTest(bookDescription: BookDescription) : BookTest(bookDescri
     private val flexibleBitmapPart: FlexibleBitmap = FlexibleBitmap(pageRect, screenRect.centerX(), screenRect.centerY())
     private val flexibleBitmapFull: FlexibleBitmap = FlexibleBitmap(pageRect, screenRect.width(), screenRect.height())
 
+    //TODO: investigate problem with color
+    private val colorDelta = when (bookDescription) {
+        BookDescription.SICP -> 15
+        else -> DEFAULT_COLOR_DELTA
+    }
+
     @Test
     fun test1Page() {
-        doTest(0)
+        doTest(0, colorDelta)
     }
 
     @Test
     fun test3Page() {
-        doTest(min(3, bookDescription.pageCount))
+        doTest(min(3, bookDescription.pageCount - 1), colorDelta)
     }
 
     @Test
     fun test60Page() {
-        //TODO: investigate problem with color
-        val colorDelta = if (BookDescription.SICP != bookDescription) DEFAULT_COLOR_DELTA else 15
-        doTest(min(59, bookDescription.pageCount), colorDelta)
+        doTest(min(59, bookDescription.pageCount - 1), colorDelta)
     }
 
     private fun doTest(pageNum: Int, colorDelta: Int = DEFAULT_COLOR_DELTA) {

@@ -41,7 +41,7 @@ class SimpleBookTest(bookDescription: BookDescription) : BookTest(bookDescriptio
 
     @Test
     fun pageSizeCheck() {
-        (0..5).forEach {
+        (0 until minOf(6, bookDescription.pageCount)).forEach {
             val page = document.getOrCreatePageAdapter(it)
             assertEquals("Check page size of $it page", bookDescription.pageSize, page.getPageSize().run { Point(width, height) })
             page.destroy()

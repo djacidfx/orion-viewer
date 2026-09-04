@@ -107,12 +107,18 @@ sealed class BookDescription(
     data object DJVU_SPEC: BookDescription(BaseTest.DJVU_SPEC, 71, null, 1, 100, Point(2539, 3295))
     data object MD_SPEC: BookDescription(BaseTest.MD_SPEC, 212, "", 7, 51, Point(420, 595))
 
+    /* 7z comic books: comic_copy.cb7 has an uncompressed header and COPY data,
+     * so it opens even without liblzma; comic_lzma2.cb7 is a regular 7z
+     * (LZMA-encoded header + LZMA2 data). */
+    data object CB7_COPY: BookDescription(BaseTest.CB7_COPY, 4, "", 0, 0, Point(600, 800))
+    data object CB7_LZMA: BookDescription(BaseTest.CB7_LZMA, 4, "", 0, 0, Point(600, 800))
+
     companion object {
         fun testData(): List<BookDescription> {
             return if (MANUAL_DEBUG) {
                 listOf(SICP)
             } else {
-                listOf(SICP, ALICE, DJVU_SPEC, MD_SPEC)
+                listOf(SICP, ALICE, DJVU_SPEC, MD_SPEC, CB7_COPY, CB7_LZMA)
             }
         }
     }

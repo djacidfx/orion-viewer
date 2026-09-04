@@ -57,26 +57,35 @@ task downloadLibArchive {
     def version = "v3.8.9"
 
     doLast {
-        def folder = new File(libarchive)
-        if (folder.exists()) {
-            exec {
-                commandLine = ['git', '-C', mupdf, 'checkout', '-f', 'master']
-            }
-            // Fetch
-            exec {
-                commandLine = ['git', '-C', mupdf, 'fetch', 'origin']
-            }
-        }
-        else {
-            exec {
-                commandLine = ['git', 'clone', 'https://github.com/libarchive/libarchive.git', libarchive]
-            }
-        }
+        downloadGitRepo(new File(libarchive), 'https://github.com/libarchive/libarchive.git', version)
+    }
+}
 
+/* Clone the repo if missing (otherwise fetch), then check out the given ref. */
+def downloadGitRepo(File folder, String url, String ref) {
+    if (folder.exists()) {
         exec {
-            workingDir file(folder)
-            commandLine = ['git', 'checkout', version]
+            commandLine = ['git', '-C', folder.absolutePath, 'fetch', 'origin']
         }
+    }
+    else {
+        exec {
+            commandLine = ['git', 'clone', url, folder.absolutePath]
+        }
+    }
+
+    exec {
+        workingDir folder
+        commandLine = ['git', 'checkout', ref]
+    }
+}
+
+/* liblzma: LZMA/LZMA2 codecs for 7z support in libarchive */
+task downloadXz {
+    def version = "v5.8.1"
+
+    doLast {
+        downloadGitRepo(new File(xz), 'https://github.com/tukaani-project/xz.git', version)
     }
 }
 
@@ -149,7 +158,7 @@ task patchMupdf(dependsOn: [downloadMupdf]) {
     }
 }
 
-task downloadAndMakeMupdf(dependsOn: [patchMupdf, downloadLibArchive])  {
+task downloadAndMakeMupdf(dependsOn: [patchMupdf, downloadLibArchive, downloadXz])  {
     doLast {
         /*For more details see mupdf/platform/android/viewer/ReadMe.txt*/
         exec {

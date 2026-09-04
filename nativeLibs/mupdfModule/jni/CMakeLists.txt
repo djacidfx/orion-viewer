@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 set(MUPDF_PATH ../../mupdf)
 set(LIBARCH ../../libarchive)
+set(XZ_PATH ../../xz)
 set(BROTLI ${MUPDF_PATH}/thirdparty/brotli/c)
 
 # Thirdparty source lists are parsed out of mupdf's own Makelists so they
@@ -83,6 +84,26 @@ ${MUPDF_PATH}/scripts/cmark-gfm
 target_compile_definitions(mupdf_core PRIVATE -D_FILE_OFFSET_BITS=32 -DTOFU_NOTO -DTOFU_CJK -DTOFU_SIL -DAA_BITS=8 -DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H -DHAVE_LCMS2MT -DHAVE_LIBARCHIVE -DFZ_ENABLE_BARCODE=0 -DCMARK_GFM_STATIC_DEFINE)
 target_compile_options(mupdf_core PRIVATE -ffunction-sections -fdata-sections)
 
+# --- liblzma (decoders only): LZMA/LZMA2 for 7z support in libarchive ---
+
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${XZ_PATH}/CMakeLists.txt)
+    message(FATAL_ERROR "xz sources not found in nativeLibs/xz: run './gradlew -b thirdparty_build.gradle downloadXz' first")
+endif()
+
+set(XZ_TOOL_XZ OFF)
+set(XZ_TOOL_XZDEC OFF)
+set(XZ_TOOL_LZMADEC OFF)
+set(XZ_TOOL_LZMAINFO OFF)
+set(XZ_TOOL_SCRIPTS OFF)
+set(XZ_NLS OFF)
+set(XZ_DOC OFF)
+set(XZ_MICROLZMA_ENCODER OFF)
+set(XZ_MICROLZMA_DECODER OFF)
+set(XZ_LZIP_DECODER OFF)
+set(XZ_ENCODERS "")
+set(BUILD_TESTING OFF)
+add_subdirectory(${XZ_PATH} xz)
+
 # --- Build a local static library for thirdparty libraries ---
 
 file(GLOB LIBARCH_SOURCE
@@ -105,7 +126,10 @@ target_compile_definitions(libarchive PRIVATE
     -D__LIBARCHIVE_CONFIG_H_INCLUDED
     -DHAVE_DECL_INT32_MAX
     -DHAVE_DECL_INT32_MIN
+    -DHAVE_LZMA_H
+    -DHAVE_LIBLZMA
 )
+target_include_directories(libarchive PRIVATE ${XZ_PATH}/src/liblzma/api)
 
 # --- Build a local static library for thirdparty libraries ---
 
@@ -232,8 +256,8 @@ ${MUPDF_PATH}/include.mupdf
 target_compile_definitions(mupdf_java PRIVATE -DHAVE_ANDROID -DORION_PDF -DORION_FOR_ANDROID -DFZ_JAVA_STORE_SIZE=64<<20)
 target_compile_options(mupdf_java PRIVATE -ffunction-sections -fdata-sections)
 
-add_dependencies(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive)
-target_link_libraries(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive)
+add_dependencies(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive liblzma)
+target_link_libraries(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive liblzma)
 
 #LOCAL_LDLIBS := -ljnigraphics -llog -lm
 #

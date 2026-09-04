@@ -30,6 +30,7 @@ runs:
           nativeLibs/djvu
           nativeLibs/mupdf
           nativeLibs/libarchive
+          nativeLibs/xz
 #          nativeLibs/mupdfModule/build
 #          nativeLibs/mupdfModule/.cxx
 #          nativeLibs/djvuModule/build

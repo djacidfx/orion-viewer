@@ -93,7 +93,8 @@
                 <data android:mimeType="application/vnd.comicbook-rar"/>
                 <data android:mimeType="application/x-cbr"/>
                 <data android:mimeType="application/x-cbt"/>
-<!--                <data android:mimeType="application/x-cb7"/>-->
+                <data android:mimeType="application/vnd.comicbook+7z"/>
+                <data android:mimeType="application/x-cb7"/>
                 <data android:mimeType="text/markdown"/>
                 <data android:mimeType="text/x-markdown"/>
 
@@ -119,7 +120,7 @@
                 <data android:pathPattern=".*\\.cbz"/>
                 <data android:pathPattern=".*\\.cbr"/>
                 <data android:pathPattern=".*\\.cbt"/>
-<!--                <data android:pathPattern=".*\\.cb7"/>-->
+                <data android:pathPattern=".*\\.cb7"/>
                 <data android:pathPattern=".*\\.md"/>
                 <data android:pathPattern=".*\\.markdown"/>
 

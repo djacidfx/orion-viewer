@@ -3,6 +3,7 @@ package universe.constellation.orion.viewer.test.framework
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers
@@ -41,6 +42,21 @@ abstract class BaseTest {
 
 
     @Before
+    fun grantManageExternalStorage() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager()) return
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val packageName = instrumentation.targetContext.packageName
+        val fd = instrumentation.uiAutomation
+            .executeShellCommand("appops set $packageName MANAGE_EXTERNAL_STORAGE allow")
+        ParcelFileDescriptor.AutoCloseInputStream(fd).use { it.readBytes() }
+        val deadline = System.currentTimeMillis() + SHORT_TIMEOUT
+        while (!Environment.isExternalStorageManager() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50)
+        }
+        assertTrue("Failed to grant MANAGE_EXTERNAL_STORAGE via appops", Environment.isExternalStorageManager())
+    }
+
+    @Before
     fun testStart() {
         log("Starting test: ${name.methodName}" )
     }
@@ -66,6 +82,10 @@ abstract class BaseTest {
         const val DJVU_SPEC: String = "DjVu3Spec.djvu"
 
         const val MD_SPEC: String = "spec.md"
+
+        const val CB7_COPY: String = "comic_copy.cb7"
+
+        const val CB7_LZMA: String = "comic_lzma2.cb7"
     }
 }
 
