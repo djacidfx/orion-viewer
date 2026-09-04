@@ -1,14 +1,8 @@
-Subject: [PATCH] counter
----
-Index: jbig2_image.c
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
 diff --git a/jbig2_image.c b/jbig2_image.c
---- a/jbig2_image.c	(revision d915733ec69260c1fd2c458b06835cb57bb85ac7)
-+++ b/jbig2_image.c	(date 1787143025715)
-@@ -72,11 +72,14 @@
+index e4a9634..5691cdb 100644
+--- a/jbig2_image.c
++++ b/jbig2_image.c
+@@ -72,12 +72,15 @@ jbig2_image_new(Jbig2Ctx *ctx, uint32_t width, uint32_t height)
  }
  
  /* bump the reference count for an image pointer */
@@ -18,13 +12,14 @@ diff --git a/jbig2_image.c b/jbig2_image.c
  Jbig2Image *
  jbig2_image_reference(Jbig2Ctx *ctx, Jbig2Image *image)
  {
+     (void) ctx;
      if (image)
 -        image->refcount++;
 +        __atomic_add_fetch(&image->refcount, 1, __ATOMIC_RELAXED);
      return image;
  }
  
-@@ -86,8 +89,7 @@
+@@ -87,8 +90,7 @@ jbig2_image_release(Jbig2Ctx *ctx, Jbig2Image *image)
  {
      if (image == NULL)
          return;

@@ -4,6 +4,31 @@ set(MUPDF_PATH ../../mupdf)
 set(LIBARCH ../../libarchive)
 set(BROTLI ${MUPDF_PATH}/thirdparty/brotli/c)
 
+# Thirdparty source lists are parsed out of mupdf's own Makelists so they
+# stay in sync with the mupdf checkout instead of being maintained by hand.
+set(MUPDF_MAKELISTS ${CMAKE_CURRENT_SOURCE_DIR}/${MUPDF_PATH}/Makelists)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${MUPDF_MAKELISTS})
+
+function(makelists_sources var prefix)
+    file(STRINGS ${MUPDF_MAKELISTS} lines REGEX "^${prefix}_SRC \\+= ")
+    set(result "")
+    foreach(line IN LISTS lines)
+        string(REGEX REPLACE "^${prefix}_SRC \\+= *" "" path "${line}")
+        string(STRIP "${path}" path)
+        if(path MATCHES "\\$")
+            message(FATAL_ERROR "${prefix}_SRC entry needs make expansion, cannot parse: ${line}")
+        endif()
+        if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${MUPDF_PATH}/${path})
+            message(FATAL_ERROR "${prefix}_SRC entry does not exist: ${path}")
+        endif()
+        list(APPEND result ${MUPDF_PATH}/${path})
+    endforeach()
+    if(NOT result)
+        message(FATAL_ERROR "no ${prefix}_SRC entries found in ${MUPDF_MAKELISTS}")
+    endif()
+    set(${var} ${result} PARENT_SCOPE)
+endfunction()
+
 # --- Build a local static library for core mupdf ---
 file(GLOB mupdf_core_SRC
 ${MUPDF_PATH}/source/fitz/*.c
@@ -52,7 +77,7 @@ ${MUPDF_PATH}/thirdparty/gumbo-parser/src
 #-DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H \
 #-DHAVE_LCMS2MT \
 
-target_compile_definitions(mupdf_core PRIVATE -D_FILE_OFFSET_BITS=32 -DTOFU_NOTO -DTOFU_CJK -DTOFU_SIL -DAA_BITS=8 -DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H -DHAVE_LCMS2MT -DHAVE_LIBARCHIVE -DFZ_ENABLE_BARCODE=0)
+target_compile_definitions(mupdf_core PRIVATE -D_FILE_OFFSET_BITS=32 -DTOFU_NOTO -DTOFU_CJK -DTOFU_SIL -DAA_BITS=8 -DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H -DHAVE_LCMS2MT -DHAVE_LIBARCHIVE -DFZ_ENABLE_BARCODE=0 -DFZ_ENABLE_MD=0)
 target_compile_options(mupdf_core PRIVATE -ffunction-sections -fdata-sections)
 
 # --- Build a local static library for thirdparty libraries ---
@@ -81,332 +106,32 @@ target_compile_definitions(libarchive PRIVATE
 
 # --- Build a local static library for thirdparty libraries ---
 
+makelists_sources(FREETYPE_SRC FREETYPE)
+makelists_sources(HARFBUZZ_SRC HARFBUZZ)
+makelists_sources(JBIG2DEC_SRC JBIG2DEC)
+makelists_sources(LIBJPEG_SRC LIBJPEG)
+makelists_sources(LCMS2_SRC LCMS2)
+makelists_sources(MUJS_SRC MUJS)
+makelists_sources(OPENJPEG_SRC OPENJPEG)
+makelists_sources(ZLIB_SRC ZLIB)
+makelists_sources(EXTRACT_SRC EXTRACT)
+makelists_sources(GUMBO_SRC GUMBO)
+makelists_sources(BROTLI_SRC BROTLI)
+
 add_library( mupdf_thirdparty
 STATIC
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftbase.c
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftbbox.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftbitmap.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftdebug.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftgasp.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftglyph.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftinit.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftstroke.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftsynth.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftsystem.c 
-${MUPDF_PATH}/thirdparty/freetype/src/base/fttype1.c 
-${MUPDF_PATH}/thirdparty/freetype/src/cff/cff.c 
-${MUPDF_PATH}/thirdparty/freetype/src/cid/type1cid.c 
-${MUPDF_PATH}/thirdparty/freetype/src/psaux/psaux.c 
-${MUPDF_PATH}/thirdparty/freetype/src/pshinter/pshinter.c 
-${MUPDF_PATH}/thirdparty/freetype/src/psnames/psnames.c 
-${MUPDF_PATH}/thirdparty/freetype/src/raster/raster.c 
-${MUPDF_PATH}/thirdparty/freetype/src/sfnt/sfnt.c 
-${MUPDF_PATH}/thirdparty/freetype/src/smooth/smooth.c 
-${MUPDF_PATH}/thirdparty/freetype/src/truetype/truetype.c 
-${MUPDF_PATH}/thirdparty/freetype/src/type1/type1.c
-${MUPDF_PATH}/thirdparty/freetype/src/base/ftfstype.c
-
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-aat-layout.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-aat-map.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-blob.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-buffer-serialize.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-buffer-verify.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-buffer.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ft.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-common.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-face.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-fallback-shape.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-font.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-number.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-cff1-table.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-cff2-table.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-color.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-face.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-font.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-layout.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-map.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-math.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-metrics.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shape-fallback.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shape-normalize.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shape.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-arabic.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-default.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-hangul.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-hebrew.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-indic-table.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-indic.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-khmer.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-myanmar.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-syllabic.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-thai.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-use.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-shaper-vowel-constraints.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-tag.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ot-var.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-set.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-shape-plan.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-shape.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-shaper.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-static.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-ucd.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-unicode.cc
-${MUPDF_PATH}/thirdparty/harfbuzz/src/hb-uniscribe.cc
-
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2.c
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_arith.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_arith_iaid.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_arith_int.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_generic.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_halftone.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_huffman.c
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_hufftab.c
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_image.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_mmr.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_page.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_refinement.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_segment.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_symbol_dict.c 
-${MUPDF_PATH}/thirdparty/jbig2dec/jbig2_text.c
-
-${MUPDF_PATH}/thirdparty/libjpeg/jaricom.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcomapi.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdapimin.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdapistd.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdarith.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdatadst.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdatasrc.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdcoefct.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdcolor.c
-${MUPDF_PATH}/thirdparty/libjpeg/jddctmgr.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdhuff.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdinput.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdmainct.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdmarker.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdmaster.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdmerge.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdpostct.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdsample.c
-${MUPDF_PATH}/thirdparty/libjpeg/jdtrans.c
-${MUPDF_PATH}/thirdparty/libjpeg/jerror.c
-${MUPDF_PATH}/thirdparty/libjpeg/jfdctflt.c
-${MUPDF_PATH}/thirdparty/libjpeg/jfdctfst.c
-${MUPDF_PATH}/thirdparty/libjpeg/jfdctint.c
-${MUPDF_PATH}/thirdparty/libjpeg/jidctflt.c
-${MUPDF_PATH}/thirdparty/libjpeg/jidctfst.c
-${MUPDF_PATH}/thirdparty/libjpeg/jidctint.c
-${MUPDF_PATH}/thirdparty/libjpeg/jmemmgr.c
-${MUPDF_PATH}/thirdparty/libjpeg/jquant1.c
-${MUPDF_PATH}/thirdparty/libjpeg/jquant2.c
-${MUPDF_PATH}/thirdparty/libjpeg/jutils.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcapimin.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcmarker.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcparam.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcapistd.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcinit.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcmaster.c
-${MUPDF_PATH}/thirdparty/libjpeg/jccolor.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcsample.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcprepct.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcdctmgr.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcarith.c
-${MUPDF_PATH}/thirdparty/libjpeg/jchuff.c
-${MUPDF_PATH}/thirdparty/libjpeg/jccoefct.c
-${MUPDF_PATH}/thirdparty/libjpeg/jcmainct.c
-
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsalpha.c
-${MUPDF_PATH}/thirdparty/lcms2/src/cmscam02.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmscgats.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmscnvrt.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmserr.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsgamma.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsgmt.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmshalf.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsintrp.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsio0.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsio1.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmslut.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsmd5.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsmtrx.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsnamed.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsopt.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmspack.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmspcs.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsplugin.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsps2.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmssamp.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmssm.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmstypes.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsvirt.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmswtpnt.c 
-${MUPDF_PATH}/thirdparty/lcms2/src/cmsxform.c
-
-${MUPDF_PATH}/thirdparty/mujs/one.c
-
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/bio.c
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/cio.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/dwt.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/event.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/function_list.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/image.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/invert.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/j2k.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/jp2.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/mct.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/mqc.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/openjpeg.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/pi.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/sparse_array.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/t1.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/t2.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/tcd.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/tgt.c 
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/thread.c
-${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2/ht_dec.c
-
-${MUPDF_PATH}/thirdparty/zlib/adler32.c
-${MUPDF_PATH}/thirdparty/zlib/compress.c
-${MUPDF_PATH}/thirdparty/zlib/crc32.c
-${MUPDF_PATH}/thirdparty/zlib/deflate.c
-${MUPDF_PATH}/thirdparty/zlib/inffast.c
-${MUPDF_PATH}/thirdparty/zlib/inflate.c
-${MUPDF_PATH}/thirdparty/zlib/inftrees.c
-${MUPDF_PATH}/thirdparty/zlib/trees.c
-${MUPDF_PATH}/thirdparty/zlib/uncompr.c
-${MUPDF_PATH}/thirdparty/zlib/zutil.c
-
-
-${MUPDF_PATH}/thirdparty/extract/src/alloc.c
-${MUPDF_PATH}/thirdparty/extract/src/astring.c
-${MUPDF_PATH}/thirdparty/extract/src/boxer.c
-${MUPDF_PATH}/thirdparty/extract/src/buffer-test.c
-${MUPDF_PATH}/thirdparty/extract/src/buffer.c
-${MUPDF_PATH}/thirdparty/extract/src/document.c
-${MUPDF_PATH}/thirdparty/extract/src/docx.c
-${MUPDF_PATH}/thirdparty/extract/src/docx_template.c
-${MUPDF_PATH}/thirdparty/extract/src/extract.c
-${MUPDF_PATH}/thirdparty/extract/src/html.c
-${MUPDF_PATH}/thirdparty/extract/src/join.c
-${MUPDF_PATH}/thirdparty/extract/src/json.c
-${MUPDF_PATH}/thirdparty/extract/src/mem.c
-${MUPDF_PATH}/thirdparty/extract/src/memento.c
-${MUPDF_PATH}/thirdparty/extract/src/misc-test.c
-${MUPDF_PATH}/thirdparty/extract/src/odt.c
-${MUPDF_PATH}/thirdparty/extract/src/odt_template.c
-${MUPDF_PATH}/thirdparty/extract/src/outf.c
-${MUPDF_PATH}/thirdparty/extract/src/rect.c
-${MUPDF_PATH}/thirdparty/extract/src/sys.c
-${MUPDF_PATH}/thirdparty/extract/src/text.c
-${MUPDF_PATH}/thirdparty/extract/src/xml.c
-${MUPDF_PATH}/thirdparty/extract/src/zip-test.c
-${MUPDF_PATH}/thirdparty/extract/src/zip.c
-
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/attribute.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/char_ref.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/error.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/parser.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/string_buffer.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/string_piece.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/tag.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/tokenizer.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/utf8.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/util.c
-${MUPDF_PATH}/thirdparty/gumbo-parser/src/vector.c
-
-${BROTLI}/common/constants.c
-${BROTLI}/common/constants.h
-${BROTLI}/common/context.c
-${BROTLI}/common/context.h
-${BROTLI}/common/dictionary.c
-${BROTLI}/common/dictionary.h
-${BROTLI}/common/platform.c
-${BROTLI}/common/platform.h
-${BROTLI}/common/shared_dictionary.c
-${BROTLI}/common/shared_dictionary_internal.h
-${BROTLI}/common/transform.c
-${BROTLI}/common/transform.h
-${BROTLI}/common/version.h
-${BROTLI}/dec/bit_reader.c
-${BROTLI}/dec/bit_reader.h
-${BROTLI}/dec/decode.c
-${BROTLI}/dec/huffman.c
-${BROTLI}/dec/huffman.h
-${BROTLI}/dec/prefix.h
-${BROTLI}/dec/state.c
-${BROTLI}/dec/state.h
-${BROTLI}/enc/backward_references.c
-${BROTLI}/enc/backward_references.h
-${BROTLI}/enc/backward_references_hq.c
-${BROTLI}/enc/backward_references_hq.h
-${BROTLI}/enc/backward_references_inc.h
-${BROTLI}/enc/bit_cost.c
-${BROTLI}/enc/bit_cost.h
-${BROTLI}/enc/bit_cost_inc.h
-${BROTLI}/enc/block_encoder_inc.h
-${BROTLI}/enc/block_splitter.c
-${BROTLI}/enc/block_splitter.h
-${BROTLI}/enc/block_splitter_inc.h
-${BROTLI}/enc/brotli_bit_stream.c
-${BROTLI}/enc/brotli_bit_stream.h
-${BROTLI}/enc/cluster.c
-${BROTLI}/enc/cluster.h
-${BROTLI}/enc/cluster_inc.h
-${BROTLI}/enc/command.c
-${BROTLI}/enc/command.h
-${BROTLI}/enc/compound_dictionary.c
-${BROTLI}/enc/compound_dictionary.h
-${BROTLI}/enc/compress_fragment.c
-${BROTLI}/enc/compress_fragment.h
-${BROTLI}/enc/compress_fragment_two_pass.c
-${BROTLI}/enc/compress_fragment_two_pass.h
-${BROTLI}/enc/dictionary_hash.c
-${BROTLI}/enc/dictionary_hash.h
-${BROTLI}/enc/encode.c
-${BROTLI}/enc/encoder_dict.c
-${BROTLI}/enc/encoder_dict.h
-${BROTLI}/enc/entropy_encode.c
-${BROTLI}/enc/entropy_encode.h
-${BROTLI}/enc/entropy_encode_static.h
-${BROTLI}/enc/fast_log.c
-${BROTLI}/enc/fast_log.h
-${BROTLI}/enc/find_match_length.h
-${BROTLI}/enc/hash_composite_inc.h
-${BROTLI}/enc/hash_forgetful_chain_inc.h
-${BROTLI}/enc/hash.h
-${BROTLI}/enc/hash_longest_match64_inc.h
-${BROTLI}/enc/hash_longest_match64_simd_inc.h
-${BROTLI}/enc/hash_longest_match_inc.h
-${BROTLI}/enc/hash_longest_match_quickly_inc.h
-${BROTLI}/enc/hash_longest_match_simd_inc.h
-${BROTLI}/enc/hash_rolling_inc.h
-${BROTLI}/enc/hash_to_binary_tree_inc.h
-${BROTLI}/enc/histogram.c
-${BROTLI}/enc/histogram.h
-${BROTLI}/enc/histogram_inc.h
-${BROTLI}/enc/literal_cost.c
-${BROTLI}/enc/literal_cost.h
-${BROTLI}/enc/matching_tag_mask.h
-${BROTLI}/enc/memory.c
-${BROTLI}/enc/memory.h
-${BROTLI}/enc/metablock.c
-${BROTLI}/enc/metablock.h
-${BROTLI}/enc/metablock_inc.h
-${BROTLI}/enc/params.h
-${BROTLI}/enc/prefix.h
-${BROTLI}/enc/quality.h
-${BROTLI}/enc/ringbuffer.h
-${BROTLI}/enc/state.h
-${BROTLI}/enc/static_dict.c
-${BROTLI}/enc/static_dict.h
-${BROTLI}/enc/static_dict_lut.h
-${BROTLI}/enc/utf8_util.c
-${BROTLI}/enc/utf8_util.h
-${BROTLI}/enc/write_bits.h
-
+${FREETYPE_SRC}
+${HARFBUZZ_SRC}
+${JBIG2DEC_SRC}
+${LIBJPEG_SRC}
+${LCMS2_SRC}
+${MUJS_SRC}
+${OPENJPEG_SRC}
+${ZLIB_SRC}
+${EXTRACT_SRC}
+${GUMBO_SRC}
+${BROTLI_SRC}
 )
-
-file(GLOB cc_EXT $(MUPDF_PATH)/thirdparty/harfbuzz/src/)
-set_source_files_properties(cc_EXT LANGUAGE CXX)
 
 include_directories(
 ${MUPDF_PATH}/include
