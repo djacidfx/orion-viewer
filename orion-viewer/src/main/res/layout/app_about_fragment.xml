@@ -62,13 +62,13 @@
             android:text="Bug reporting: https://github.com/max-kammerer/orion-viewer/issues"
             android:gravity="center" android:linksClickable="true" android:autoLink="web"/>
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/project_ino_3" android:textSize="@dimen/text_size_medium"
-            android:text="Discussion group: https://groups.google.com/group/orionviewer"
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="@dimen/text_size_medium"
+            android:text="Discussion group (EN): https://groups.google.com/group/orionviewer"
             android:gravity="center" android:linksClickable="true" android:autoLink="web"/>
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/project_ino_4" android:textSize="@dimen/text_size_medium"
-            android:text="Donation: https://sourceforge.net/p/orion-viewer/wiki/Donation/"
-            android:gravity="center" android:linksClickable="true" android:autoLink="web"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="@dimen/text_size_medium"
+                  android:text="Discussion group (RU): https://4pda.to/forum/index.php?showtopic=362925"
+                  android:gravity="center" android:linksClickable="true" android:autoLink="web"/>
 
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -146,11 +146,6 @@
                   android:gravity="center"/>
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="tree-view-list-android"
-                    android:textSize="@dimen/text_size_medium"/>
-
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                   android:textSize="@dimen/text_size_medium"
                   android:text="freetype"
                   android:gravity="center"/>
@@ -178,6 +173,16 @@
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:textSize="@dimen/text_size_medium"
             android:text="libarchive"
+            android:gravity="center"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_medium"
+            android:text="xz (liblzma)"
+            android:gravity="center"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_medium"
+            android:text="cmark-gfm"
             android:gravity="center"/>
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
