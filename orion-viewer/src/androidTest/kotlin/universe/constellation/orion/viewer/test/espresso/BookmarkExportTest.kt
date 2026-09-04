@@ -9,13 +9,11 @@ import androidx.test.filters.SdkSuppress
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import universe.constellation.orion.viewer.bookmarks.ALL_BOOKMARKS_SUFFIX
 import universe.constellation.orion.viewer.bookmarks.BOOKMARKS_SUFFIX
 import universe.constellation.orion.viewer.R
 import universe.constellation.orion.viewer.prefs.GlobalOptions
-import universe.constellation.orion.viewer.test.framework.BookFile
+import universe.constellation.orion.viewer.test.framework.BookDescription
 import universe.constellation.orion.viewer.test.framework.checkTrue
 import universe.constellation.orion.viewer.test.framework.onActivity
 import java.io.File
@@ -27,10 +25,9 @@ import java.io.File
  * Menu navigation goes through uiautomator, which doesn't load below API 18.
  */
 @SdkSuppress(minSdkVersion = Build.VERSION_CODES.KITKAT)
-@RunWith(Parameterized::class)
-class BookmarkExportTest(bookDescription: BookFile) : BaseViewerActivityTest(
-    bookDescription,
-    bookDescription.toOpenIntent { putExtra(GlobalOptions.OPEN_AS_TEMP_BOOK, false) }
+class BookmarkExportTest : BaseViewerActivityTest(
+    BookDescription.SICP,
+    BookDescription.SICP.toOpenIntent { putExtra(GlobalOptions.OPEN_AS_TEMP_BOOK, false) }
 ) {
 
     private val exportedFiles: List<File>

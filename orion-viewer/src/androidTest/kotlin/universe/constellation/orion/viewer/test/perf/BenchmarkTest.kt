@@ -76,7 +76,7 @@ class BenchmarkTest : BaseTest() {
             val partRendering = mutableListOf<Long>()
             val bigPartRendering = mutableListOf<Long>()
 
-            val readData = (0..20).map { pageNum ->
+            val readData = (0..minOf(20, book.pageCount - 1)).map { pageNum ->
                 bitmap.eraseColor(Color.TRANSPARENT)
                 val page = book.getOrCreatePageAdapter(pageNum)
                 pageInfo.add(
