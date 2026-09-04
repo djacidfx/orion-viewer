@@ -67,6 +67,9 @@ ${MUPDF_PATH}/thirdparty/openjpeg/src/lib/openjp2
 ${MUPDF_PATH}/thirdparty/zlib
 ${MUPDF_PATH}/thirdparty/extract/include
 ${MUPDF_PATH}/thirdparty/gumbo-parser/src
+${MUPDF_PATH}/thirdparty/cmark-gfm/src
+${MUPDF_PATH}/thirdparty/cmark-gfm/extensions
+${MUPDF_PATH}/scripts/cmark-gfm
 )
 
 #LOCAL_CFLAGS := \
@@ -77,7 +80,7 @@ ${MUPDF_PATH}/thirdparty/gumbo-parser/src
 #-DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H \
 #-DHAVE_LCMS2MT \
 
-target_compile_definitions(mupdf_core PRIVATE -D_FILE_OFFSET_BITS=32 -DTOFU_NOTO -DTOFU_CJK -DTOFU_SIL -DAA_BITS=8 -DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H -DHAVE_LCMS2MT -DHAVE_LIBARCHIVE -DFZ_ENABLE_BARCODE=0 -DFZ_ENABLE_MD=0)
+target_compile_definitions(mupdf_core PRIVATE -D_FILE_OFFSET_BITS=32 -DTOFU_NOTO -DTOFU_CJK -DTOFU_SIL -DAA_BITS=8 -DOPJ_STATIC -DOPJ_HAVE_INTTYPES_H -DOPJ_HAVE_STDINT_H -DHAVE_LCMS2MT -DHAVE_LIBARCHIVE -DFZ_ENABLE_BARCODE=0 -DCMARK_GFM_STATIC_DEFINE)
 target_compile_options(mupdf_core PRIVATE -ffunction-sections -fdata-sections)
 
 # --- Build a local static library for thirdparty libraries ---
@@ -132,6 +135,24 @@ ${EXTRACT_SRC}
 ${GUMBO_SRC}
 ${BROTLI_SRC}
 )
+
+# cmark-gfm is built as a separate target because its internal headers are
+# included as <parser.h>/<utf8.h>, which clash with gumbo-parser's headers
+# in the global include path; BEFORE puts its own dirs first.
+makelists_sources(CMARKGFM_SRC CMARKGFM)
+
+add_library( cmark_gfm STATIC
+    ${CMARKGFM_SRC}
+)
+
+target_include_directories(cmark_gfm BEFORE PRIVATE
+    ${MUPDF_PATH}/thirdparty/cmark-gfm/src
+    ${MUPDF_PATH}/thirdparty/cmark-gfm/extensions
+    ${MUPDF_PATH}/scripts/cmark-gfm
+)
+
+target_compile_definitions(cmark_gfm PRIVATE -DCMARK_GFM_STATIC_DEFINE)
+target_compile_options(cmark_gfm PRIVATE -ffunction-sections -fdata-sections)
 
 include_directories(
 ${MUPDF_PATH}/include
@@ -211,8 +232,8 @@ ${MUPDF_PATH}/include.mupdf
 target_compile_definitions(mupdf_java PRIVATE -DHAVE_ANDROID -DORION_PDF -DORION_FOR_ANDROID -DFZ_JAVA_STORE_SIZE=64<<20)
 target_compile_options(mupdf_java PRIVATE -ffunction-sections -fdata-sections)
 
-add_dependencies(mupdf_java mupdf_core mupdf_thirdparty libarchive)
-target_link_libraries(mupdf_java mupdf_core mupdf_thirdparty libarchive)
+add_dependencies(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive)
+target_link_libraries(mupdf_java mupdf_core mupdf_thirdparty cmark_gfm libarchive)
 
 #LOCAL_LDLIBS := -ljnigraphics -llog -lm
 #

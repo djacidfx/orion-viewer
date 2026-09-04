@@ -33,6 +33,8 @@ enum class FileFormats(val extensions: List<String>, vararg val mimeTypes: Strin
     //CB7(listOf("cb7"), "application/x-cb7"),
     CBT(listOf("cbt"),  "application/x-cbt"),
 
+    MD(listOf("md", "markdown"), "text/markdown", "text/x-markdown"),
+
     PNG(listOf("png"), "image/png"),
     JPEG(listOf("jpg", "jpeg"), "image/jpeg", "image/pjpeg");
 

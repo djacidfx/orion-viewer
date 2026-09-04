@@ -105,13 +105,14 @@ sealed class BookDescription(
     data object SICP: BookDescription(BaseTest.SICP, 762, "", 15, 139, Point(662, 885))
     data object ALICE: BookDescription(BaseTest.ALICE, 77, null, 0,  pageSize = Point(2481, 3508))
     data object DJVU_SPEC: BookDescription(BaseTest.DJVU_SPEC, 71, null, 1, 100, Point(2539, 3295))
+    data object MD_SPEC: BookDescription(BaseTest.MD_SPEC, 212, "", 7, 51, Point(420, 595))
 
     companion object {
         fun testData(): List<BookDescription> {
             return if (MANUAL_DEBUG) {
                 listOf(SICP)
             } else {
-                listOf(SICP, ALICE, DJVU_SPEC)
+                listOf(SICP, ALICE, DJVU_SPEC, MD_SPEC)
             }
         }
     }

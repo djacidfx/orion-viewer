@@ -64,6 +64,8 @@ abstract class BaseTest {
         const val ALICE: String = "aliceinw.djvu"
 
         const val DJVU_SPEC: String = "DjVu3Spec.djvu"
+
+        const val MD_SPEC: String = "spec.md"
     }
 }
 

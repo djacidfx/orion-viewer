@@ -94,6 +94,8 @@
                 <data android:mimeType="application/x-cbr"/>
                 <data android:mimeType="application/x-cbt"/>
 <!--                <data android:mimeType="application/x-cb7"/>-->
+                <data android:mimeType="text/markdown"/>
+                <data android:mimeType="text/x-markdown"/>
 
                 <!--images-->
                 <data android:mimeType="image/tiff"/>
@@ -118,6 +120,8 @@
                 <data android:pathPattern=".*\\.cbr"/>
                 <data android:pathPattern=".*\\.cbt"/>
 <!--                <data android:pathPattern=".*\\.cb7"/>-->
+                <data android:pathPattern=".*\\.md"/>
+                <data android:pathPattern=".*\\.markdown"/>
 
                 <!--images-->
                 <data android:pathPattern=".*\\.tiff" />
