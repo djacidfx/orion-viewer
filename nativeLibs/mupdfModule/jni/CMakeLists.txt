@@ -246,6 +246,12 @@ add_library( mupdf_java
 ${MUPDF_PATH}/platform/java/mupdf_native.c
 )
 
+# NDK 17 (Android 4.0 build) links libgcc, which lacks the compiler-rt helper
+# clang emits for 64-bit __builtin_mul_overflow in libarchive on 32-bit ABIs.
+if(NOT DEFINED ANDROID_NDK_MAJOR OR ANDROID_NDK_MAJOR LESS 23)
+    target_sources(mupdf_java PRIVATE ../../common/compat_mulodi4.c)
+endif()
+
 
 include_directories(
 ${MUPDF_PATH}/include
