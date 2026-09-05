@@ -197,6 +197,5 @@ class OutlineAdapter(
 /* Falls back to orion_blue at 30% alpha for themes that don't define the attribute. */
 internal val android.content.Context.listHighlightColor: Int
     get() {
-        val value = android.util.TypedValue()
-        return if (theme.resolveAttribute(R.attr.listHighlightColor, value, true)) value.data else 0x4D54759E
+        return  0x4D54759E
     }
