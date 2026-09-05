@@ -1,0 +1,61 @@
+name: Screenshots
+
+# Manual run only: walks through the main screens under every theme
+# (ScreenTourTest) on each requested API level and uploads the screenshots.
+#
+# Default API levels are the ones where the theme machinery differs:
+#   19 - no system bar coloring at all, the only API 4.x still on the test matrix
+#   21 - status bar icons always white, windowLightStatusBar unknown, values-v23 overlay absent
+#   23 - first light status bar: values-v23 colors + dark icons in the light themes
+#   28 - last three-button navigation bar before gestures, no force dark yet
+#   33 - modern baseline: gesture navigation, predictive back
+#   35 - edge-to-edge enforced for targetSdk 35, fitsSystemWindows opt-out
+#   36 - opt-out no longer honored, systemUiVisibility ignored
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      api-levels:
+        description: Emulator API levels, comma-separated
+        type: string
+        default: '19,21,23,28,33,35,36'
+      themes:
+        description: Themes to shoot, comma-separated (empty = all)
+        type: string
+        default: ''
+
+jobs:
+  screenshots:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: ${{ fromJSON(format('[{0}]', inputs.api-levels)) }}
+    runs-on: ubuntu-24.04
+    env:
+      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 170
+      EMULATOR_API: ${{ matrix.api }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run job configurations
+        uses: ./.github/workflows/config
+
+      - name: Take screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: ${{ matrix.api >= 21 && 'x86_64' || 'x86' }}
+          profile: pixel_5
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          sdcard-path-or-size: 500M
+          script: ./gradlew forwardLogcat connectedDebugAndroidTest -Porion.CIBuild=true -Pandroid.testInstrumentationRunnerArguments.class=universe.constellation.orion.viewer.test.screenshots.ScreenTourTest -Pandroid.testInstrumentationRunnerArguments.tour.themes=${{ inputs.themes }}
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-api${{ matrix.api }}
+          path: orion-viewer/build/failures/
+        if: always()
