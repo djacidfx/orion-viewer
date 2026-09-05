@@ -3,16 +3,18 @@ name: "config"
 runs:
   using: "composite"
   steps:
-    - uses: gradle/wrapper-validation-action@v2
+    - uses: gradle/actions/wrapper-validation@v6
 
     - name: set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: 17
         distribution: corretto
 
     - name: Setup Gradle Cache
-      uses: gradle/gradle-build-action@v3
+      uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-provider: basic
 
     - name: Enable KVM group perms
       if: ${{ runner.os == 'Linux' }}
@@ -24,7 +26,7 @@ runs:
 
     - name: Restore Native Libs
       id: restore-nativeLibs
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           nativeLibs/djvu

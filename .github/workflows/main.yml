@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/workflows/config
 
       - name: Build debug APK
@@ -34,22 +34,22 @@ jobs:
           property: 'orion.version.name'
 
       - name: Upload arm7 APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orion-viewer-${{steps.read_version_property.outputs.value}}-${{github.run_number}}-armeabi-v7a-debug.apk
           path: orion-viewer/build/outputs/apk/debug/orion-viewer-*-v7a-debug.apk
       - name: Upload arm64 APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orion-viewer-${{steps.read_version_property.outputs.value}}-${{github.run_number}}-arm64-v8a-debug.apk
           path: orion-viewer/build/outputs/apk/debug/orion-viewer-*-v8a-debug.apk
       - name: Upload x86 APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orion-viewer-${{steps.read_version_property.outputs.value}}-${{github.run_number}}-x86-debug.apk
           path: orion-viewer/build/outputs/apk/debug/orion-viewer-*-x86-debug.apk
       - name: Upload x86_64 APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orion-viewer-${{steps.read_version_property.outputs.value}}-${{github.run_number}}-x86_64-debug.apk
           path: orion-viewer/build/outputs/apk/debug/orion-viewer-*-x86_64-debug.apk
@@ -58,13 +58,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [[15, x86, ubuntu-22.04], [16, x86, ubuntu-24.04], [19, x86, ubuntu-24.04], [21, x86, ubuntu-24.04], [23, x86, ubuntu-24.04], [28, x86, ubuntu-24.04], [30, x86_64, ubuntu-24.04],  [32, x86_64, ubuntu-24.04], [33, x86_64, ubuntu-24.04], [33, x86_64, ubuntu-24.04], [35, x86_64, ubuntu-24.04]]
+        arch: [[15, x86, ubuntu-22.04], [16, x86, ubuntu-24.04], [19, x86, ubuntu-24.04], [21, x86, ubuntu-24.04], [23, x86, ubuntu-24.04], [28, x86, ubuntu-24.04], [30, x86_64, ubuntu-24.04],  [32, x86_64, ubuntu-24.04], [33, x86_64, ubuntu-24.04], [35, x86_64, ubuntu-24.04]]
     env:
       ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 170
       EMULATOR_API: ${{ matrix.arch[0] }}
     runs-on: ${{ matrix.arch[2] }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run job configurations
         uses: ./.github/workflows/config
 
@@ -83,15 +83,23 @@ jobs:
           sdcard-path-or-size: 500M
           script: ./gradlew forwardLogcat connectedDebugAndroidTest -Porion.CIBuild=true  -Porion.build.android40=${{ matrix.arch[0] == 15 }}
 
-      - uses: dorny/test-reporter@v1
+      - name: Name test suite
+        # AGP names the single <testsuite> after the first test class that ran
+        run: sed -i 's/<testsuite name="[^"]*"/<testsuite name="Instrumentation tests, API ${{ matrix.arch[0] }}"/' orion-viewer/build/outputs/androidTest-results/connected/debug/TEST-*.xml || true
+        if: failure()
+
+      - uses: dorny/test-reporter@v3
         with:
           name: Test results ${{ matrix.arch[0] }}
           path: orion-viewer/build/outputs/androidTest-results/connected/debug/TEST-*.xml
           reporter: java-junit
+          use-actions-summary: true
+          fail-on-error: false
+          fail-on-empty: false
         if: failure()
 
       - name: Upload screenshots and logcat
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshotsAndLogcat${{ matrix.arch[0] }}
           path: orion-viewer/build/failures/
